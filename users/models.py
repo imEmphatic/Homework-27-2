@@ -1,7 +1,6 @@
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import PermissionsMixin
 from django.db import models
-
-from materials.models import Course, Lesson
 
 
 class CustomUserManager(BaseUserManager):
@@ -26,29 +25,30 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
-class User(AbstractBaseUser):
+class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField("email address", unique=True)
+    first_name = models.CharField(max_length=30, blank=True)
+    last_name = models.CharField(max_length=30, blank=True)
     phone = models.CharField(max_length=20, null=True, blank=True)
     city = models.CharField(max_length=100, null=True, blank=True)
     avatar = models.ImageField(upload_to="avatars", null=True, blank=True)
 
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    is_superuser = models.BooleanField(default=False)
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ["first_name"]
 
     objects = CustomUserManager()
 
     def __str__(self):
         return self.email
 
-    def has_perm(self, perm, obj=None):
-        return self.is_superuser
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}"
 
-    def has_module_perms(self, app_label):
-        return self.is_superuser
+    def get_short_name(self):
+        return self.first_name
 
 
 class Payment(models.Model):
@@ -60,14 +60,14 @@ class Payment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payments")
     payment_date = models.DateTimeField(auto_now_add=True)
     course = models.ForeignKey(
-        Course,
+        "materials.Course",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="payments",
     )
     lesson = models.ForeignKey(
-        Lesson,
+        "materials.Lesson",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
