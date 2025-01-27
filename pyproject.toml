@@ -1,9 +1,10 @@
 [tool.poetry]
-name = "homework-24-1"
+name = "homework-25-2"
 version = "0.1.0"
 description = ""
 authors = ["Aleksei Prusikov <imemphatic@yandex.ru>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -14,6 +15,8 @@ pillow = "^11.1.0"
 psycopg2-binary = "^2.9.10"
 django-filter = "^24.3"
 djangorestframework-simplejwt = "^5.4.0"
+validators = "^0.34.0"
+coverage = "^7.6.10"
 
 
 [tool.poetry.group.dev.dependencies]
