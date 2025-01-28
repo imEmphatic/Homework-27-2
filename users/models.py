@@ -1,80 +1,55 @@
-from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
-from django.contrib.auth.models import PermissionsMixin
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-class CustomUserManager(BaseUserManager):
-    def create_user(self, email, password, **extra_fields):
-        if not email:
-            raise ValueError("The Email must be set")
-        email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
-        user.set_password(password)
-        user.save()
-        return user
+class User(AbstractUser):
+    username = None
 
-    def create_superuser(self, email, password, **extra_fields):
-        extra_fields.setdefault("is_staff", True)
-        extra_fields.setdefault("is_superuser", True)
-        extra_fields.setdefault("is_active", True)
-
-        if extra_fields.get("is_staff") is not True:
-            raise ValueError("Superuser must have is_staff=True.")
-        if extra_fields.get("is_superuser") is not True:
-            raise ValueError("Superuser must have is_superuser=True.")
-        return self.create_user(email, password, **extra_fields)
-
-
-class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField("email address", unique=True)
-    first_name = models.CharField(max_length=30, blank=True)
-    last_name = models.CharField(max_length=30, blank=True)
-    phone = models.CharField(max_length=20, null=True, blank=True)
-    city = models.CharField(max_length=100, null=True, blank=True)
-    avatar = models.ImageField(upload_to="avatars", null=True, blank=True)
-
-    is_staff = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["first_name"]
-
-    objects = CustomUserManager()
-
-    def __str__(self):
-        return self.email
-
-    def get_full_name(self):
-        return f"{self.first_name} {self.last_name}"
-
-    def get_short_name(self):
-        return self.first_name
-
-
-class Payment(models.Model):
-    PAYMENT_METHOD_CHOICES = [
-        ("cash", "Наличные"),
-        ("transfer", "Перевод на счет"),
-    ]
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payments")
-    payment_date = models.DateTimeField(auto_now_add=True)
-    course = models.ForeignKey(
-        "materials.Course",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="payments",
+    email = models.EmailField(
+        unique=True, verbose_name="Почта", help_text="Укажите почту"
     )
-    lesson = models.ForeignKey(
-        "materials.Lesson",
-        on_delete=models.SET_NULL,
-        null=True,
+    phone = models.CharField(
+        max_length=35,
         blank=True,
-        related_name="payments",
+        null=True,
+        verbose_name="Телефон",
+        help_text="Укажите телефон",
+    )
+    city = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        verbose_name="Город",
+        help_text="Укажите город",
+    )
+    avatar = models.ImageField(
+        upload_to="users/avatars",
+        blank=True,
+        null=True,
+        verbose_name="Аватар",
+        help_text="Загрузите аватар",
+    )
+
+    REQUIRED_FIELDS = []
+    USERNAME_FIELD = "email"
+
+    class Meta:
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
+
+
+class UserPayment(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="user_payments"
+    )
+    course = models.ForeignKey(
+        "materials.Course", on_delete=models.CASCADE, related_name="user_payments"
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_method = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES)
+    stripe_session_id = models.CharField(max_length=255, blank=True, null=True)
+    status = models.CharField(max_length=20, default="pending")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Payment by {self.user.email} on {self.payment_date}"
+        return f"UserPayment {self.id} for {self.course.title} by {self.user.email}"
