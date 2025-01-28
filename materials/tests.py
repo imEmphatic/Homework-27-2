@@ -26,7 +26,7 @@ class LessonCRUDTestCase(APITestCase):
             description="Test Description",
             course=self.course,
             owner=self.user,
-            video_link="https://youtube.com/watch?v=dQw4w9WgXcQ",
+            video_link="https://www.youtube.com/watch?v=fNv7wIGu174",
         )
 
     def test_create_lesson(self):
@@ -36,7 +36,7 @@ class LessonCRUDTestCase(APITestCase):
             "title": "New Lesson",
             "description": "New Description",
             "course": self.course.id,
-            "video_link": "https://youtube.com/watch?v=dQw4w9WgXcQ",
+            "video_link": "https://www.youtube.com/watch?v=fNv7wIGu174",
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

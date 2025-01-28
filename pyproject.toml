@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "homework-26-1"
+name = "homework-26-2"
 version = "0.1.0"
 description = ""
 authors = ["Aleksei Prusikov <imemphatic@yandex.ru>"]
@@ -25,6 +25,9 @@ asgiref = "^3.8.1"
 psycopg = "^3.2.4"
 sqlparse = "^0.5.3"
 typing-extensions = "^4.12.2"
+celery = "^5.4.0"
+redis = "^5.2.1"
+django-celery-beat = "^2.7.0"
 
 
 [tool.poetry.group.dev.dependencies]

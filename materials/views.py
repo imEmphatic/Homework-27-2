@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, status, viewsets
@@ -9,6 +10,7 @@ from .models import Course, Lesson, Subscription
 from .paginators import MaterialsPaginator
 from .permissions import IsModerator, IsOwner, ReadOnlyForAll
 from .serializers import CourseSerializer, LessonSerializer
+from .tasks import send_update_notification
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -56,7 +58,17 @@ class CourseViewSet(viewsets.ModelViewSet):
         responses={200: CourseSerializer()},
     )
     def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
+        instance = self.get_object()
+        four_hours_ago = timezone.now() - timezone.timedelta(hours=4)
+
+        response = super().update(request, *args, **kwargs)
+
+        if instance.last_updated <= four_hours_ago:
+            subscribers = instance.subscribers.all()
+            for subscriber in subscribers:
+                send_update_notification.delay(instance.id, subscriber.email)
+
+        return response
 
     @swagger_auto_schema(
         operation_description="Частично обновить курс",

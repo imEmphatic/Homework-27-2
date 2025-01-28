@@ -62,10 +62,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     lookup_field = "id"
 
     def get_serializer_class(self):
-        if getattr(self, "swagger_fake_view", False):
-            return UserSerializer
-
-        if self.kwargs.get("id") and self.request.user.id == int(self.kwargs["id"]):
+        if self.request.user.id == self.kwargs["id"]:
             return UserDetailSerializer
         return UserSerializer
 
