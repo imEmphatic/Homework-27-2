@@ -18,10 +18,7 @@ RUN pip install poetry
 COPY pyproject.toml poetry.lock /app/
 
 # Устанавливаем зависимости с помощью Poetry
-RUN poetry config virtualenvs.create false && poetry install --no-dev --no-root
+RUN poetry config virtualenvs.create false && poetry install --no-root
 
 # Копируем весь код проекта
 COPY . /app/
-
-# Указываем команду запуска приложения
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
